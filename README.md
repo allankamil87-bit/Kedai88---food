@@ -1,2 +1,562 @@
 # Kedai88---food
 Pesan dan antar 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemesanan Online - Kedai 88</title>
+    <style>
+        /* Styling Modal Invoice */
+#invoiceModal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.invoice-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    font-family: 'Courier New', Courier, monospace; /* Gaya struk belanja */
+}
+
+.invoice-header {
+    text-align: center;
+    border-bottom: 2px dashed #bbb;
+    padding-bottom: 10px;
+}
+
+.invoice-body {
+    padding: 20px 0;
+    line-height: 1.4;
+}
+
+.invoice-footer {
+    border-top: 2px dashed #bbb;
+    padding-top: 10px;
+    text-align: center;
+}
+
+.btn-confirm {
+    background: #25d366;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+        /* Animasi Teks Berjalan (Marquee) */
+.marquee-container {
+    background: var(--primary);
+    color: var(--dark);
+    padding: 5px 0;
+    font-weight: bold;
+    text-transform: uppercase;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 2px solid var(--dark);
+}
+
+.marquee-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 35s linear infinite;
+    font-size: 0.9em;
+    letter-spacing: 2px;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Animasi Menu Muncul (Fade In) */
+.menu-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Delay Animasi tiap kartu agar muncul bergantian */
+.menu-card:nth-child(1) { animation-delay: 0.1s; }
+.menu-card:nth-child(2) { animation-delay: 0.2s; }
+.menu-card:nth-child(3) { animation-delay: 0.3s; }
+.menu-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Efek Tombol Bergetar (Pulse) */
+.btn-wa {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+}
+
+        :root { --primary: #d35400; --secondary: #27ae60; --light: #f4f4f4; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #e9ecef; margin: 0; padding: 10px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid var(--primary); margin-bottom: 20px; padding-bottom: 10px; }
+        
+        .menu-category { background: var(--primary); color: white; padding: 10px; border-radius: 5px; margin-top: 30px; margin-bottom: 15px; clear: both; font-weight: bold; text-transform: uppercase; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        
+        .menu-card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; background: #fff; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; }
+        .menu-card:hover { border-color: var(--primary); box-shadow: 0 5px 10px rgba(0,0,0,0.05); }
+        .menu-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; background: #f0f0f0; }
+        .menu-card h4 { margin: 5px 0; font-size: 0.95em; height: 40px; overflow: hidden; }
+        .price { color: var(--primary); font-weight: bold; margin-bottom: 10px; font-size: 1.1em; }
+        
+        .upload-item { font-size: 0.75em; color: #666; margin-bottom: 10px; width: 100%; }
+        .qty-input { width: 70px; padding: 6px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-weight: bold; }
+        .qty-input:focus { border-color: var(--primary); outline: none; }
+        
+        .checkout-section { background: #fff; border: 2px solid #ddd; padding: 20px; border-radius: 10px; margin-top: 40px; }
+        .total-box { font-size: 1.6em; font-weight: bold; color: #c0392b; text-align: center; padding: 15px; border: 2px solid #c0392b; margin-bottom: 25px; border-radius: 8px; background: #fff5f5; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], textarea, select { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        
+        .btn-wa { background: #25d366; color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-wa:hover { background: #128c7e; transform: scale(1.01); }
+    </style>
+</head>
+<body>
+<div class="marquee-container">
+    <div class="marquee-text">
+        +++ SELAMAT DATANG DI KEDAI 88 SELOREJO MALANG +++ PESAN SEKARANG, KAMI SIAP ANTAR KE TEMPAT ANDA +++ JANGAN LUPA UNGGAH BUKTI TRANSFER UNTUK PROSES LEBIH CEPAT +++ KEDAI 88: NIKMATNYA PAS, HARGANYA PAS! +++
+    </div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>KEDAI 88</h1>
+        <p><strong>📍 Alamat:</strong> Jl. Selorejo No.88, Lowokwaru, Kota Malang</p>
+        <p>⏰ Buka: 16:00 - 23:00 | Senin - Minggu (Kecuali Libur Tertentu)</p>
+    </div>
+
+    <form id="orderForm">
+        <div class="menu-category">🌽 MAKANAN RINGAN: JAGUNG BAKAR</div>
+        <div class="menu-grid">
+            <div class="menu-card">
+                <img src="Jagung Bakar serut manis+keju.jpg" alt="jagung bakar">
+                <h4>Jagung Bakar Serut Manis+Keju</h4>
+                <div class="price">Rp 16.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="16000" data-name="Jagung Serut Manis+Keju" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Jagung bakar serut pedas manis.jpg" alt="jagung bakar">
+                <h4>Jagung Bakar Serut Pedas Manis</h4>
+                <div class="price">Rp 14.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="14000" data-name="Jagung Serut Pedas Manis" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Jagung bakar serut manis.jpg" alt="jagung bakar">
+                <h4>Jagung Bakar Serut Manis</h4>
+                <div class="price">Rp 14.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="14000" data-name="Jagung Serut Manis" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Jagung bakar pedas manis.jpg" alt="jagung bakar">
+                <h4>Jagung Bakar Pedas Manis</h4>
+                <div class="price">Rp 12.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="12000" data-name="Jagung Bakar Pedas Manis" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Jagung bakar manis.jpg" alt="jagung bakar">
+                <h4>Jagung Bakar Manis</h4>
+                <div class="price">Rp 12.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="12000" data-name="Jagung Bakar Manis" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="menu-category">🍞 MAKANAN RINGAN: ROTI BAKAR</div>
+        <div class="menu-grid">
+            <div class="menu-card">
+                <img src="Rb selai strawberry.jpg" alt="roti bakar">
+                <h4>Roti Bakar Selai Strawberry</h4>
+                <div class="price">Rp 8.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="8000" data-name="Roti Strawberry" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Rb selai blueberry.jpg" alt="roti bakar">
+                <h4>Roti Bakar Selai Blueberry</h4>
+                <div class="price">Rp 8.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="8000" data-name="Roti Blueberry" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Rb coklat.jpg" alt="roti bakar">
+                <h4>Roti Bakar Coklat</h4>
+                <div class="price">Rp 9.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="9000" data-name="Roti Coklat" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Rb coklat keju.jpg" alt="roti bakar">
+                <h4>Roti Bakar Coklat Keju</h4>
+                <div class="price">Rp 10.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="10000" data-name="Roti Coklat Keju" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="menu-category">🍜 MAKANAN </div>
+        <div class="menu-grid">
+            <div class="menu-card">
+                <img src="Mie instan kuah+telur.jpg" alt="Makanan">
+                <h4>Mie Instan kuah + Telur</h4>
+                <div class="price">Rp 14.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="14000" data-name="Mie Instan+Telur" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Mie instan goreng+telur.jpg" alt="Makanan">
+                <h4>Mie Instan Goreng + Telur</h4>
+                <div class="price">Rp 14.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="14000" data-name="Mie Goreng+Telur" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Mie instan kuah.jpg" alt="Makanan">
+                <h4>Mie Instan Kuah</h4>
+                <div class="price">Rp 10.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="10000" data-name="Mie Instan Kuah" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="menu-category">🍹 MINUMAN DINGIN</div>
+        <div class="menu-grid">
+            <div class="menu-card">
+                <img src="Pop ice aneka rasa.jpg" alt="Minuman dingin">
+                <h4>Pop Ice Aneka Rasa</h4>
+                <div class="price">Rp 7.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="7000" data-name="Pop Ice" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Es jeruk peras .jpg" alt="Minuman dingin">
+                <h4>Es Jeruk Peras</h4>
+                <div class="price">Rp 7.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="7000" data-name="Es Jeruk" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Es teh manis.jpg" alt="Minuman dingin">
+                <h4>Es Teh Manis</h4>
+                <div class="price">Rp 6.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="6000" data-name="Es Teh" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Es kopi susu.jpg" alt="Minuman dingin">
+                <h4>Es Kopi Susu</h4>
+                <div class="price">Rp 10.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="10000" data-name="Es Kopi Susu" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Es kopi hitam.jpg" alt="Minuman dingin">
+                <h4>Es Kopi Hitam</h4>
+                <div class="price">Rp 9.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="9000" data-name="Es Kopi Hitam" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Es coffe latte.jpg" alt="Minuman dingin">
+                <h4>Es Coffee Latte</h4>
+                <div class="price">Rp 13.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="13000" data-name="Es Coffee Latte" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="menu-category">☕ MINUMAN PANAS & STMJ</div>
+        <div class="menu-grid">
+            <div class="menu-card">
+                <img src="Teh manis panas.jpg" alt="Minuman panas">
+                <h4>Teh Manis Panas</h4>
+                <div class="price">Rp 5.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="5000" data-name="Teh Panas" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Stmj coklat+jinten.jpg" alt="Minuman panas">
+                <h4>STMJ Coklat + Jinten</h4>
+                <div class="price">Rp 26.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="26000" data-name="STMJ Coklat Jinten" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Stmj coklat.jpg" alt="Minuman panas">
+                <h4>STMJ + Coklat</h4>
+                <div class="price">Rp 23.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="23000" data-name="STMJ Coklat" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Stmj+jinten.jpg" alt="Minuman panas">
+                <h4>STMJ + Jinten</h4>
+                <div class="price">Rp 23.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="23000" data-name="STMJ Jinten" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Stmj.jpg" alt="Minuman panas">
+                <h4>STMJ Original</h4>
+                <div class="price">Rp 20.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="20000" data-name="STMJ Ori" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Stm.jpg" alt="Minuman panas">
+                <h4>STM (Susu Telur Madu)</h4>
+                <div class="price">Rp 20.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="20000" data-name="STM" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Smj.jpg" alt="Minuman panas">
+                <h4>SMJ (Susu Madu Jahe)</h4>
+                <div class="price">Rp 17.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="17000" data-name="SMJ" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Kopi susu.jpg" alt="Minuman panas">
+                <h4>Kopi Susu Panas</h4>
+                <div class="price">Rp 9.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="9000" data-name="Kopi Susu" value="0" min="0">
+            </div>
+            <div class="menu-card">
+                <img src="Kopi hitam.jpg" alt="Minuman panas">
+                <h4>Kopi Hitam Panas</h4>
+                <div class="price">Rp 8.000</div>
+                <input type="file" class="upload-item" accept="image/*">
+                <input type="number" class="qty-input" data-price="8000" data-name="Kopi Hitam" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="checkout-section">
+            <div class="total-box">
+                TOTAL BAYAR: Rp <span id="displayTotal">0</span>
+            </div>
+
+            <div class="form-group">
+                <label>Nama Lengkap Pemesan:</label>
+                <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
+            </div>
+
+            <div class="form-group">
+                <label>Alamat Pengiriman:</label>
+                <textarea id="alamat" rows="3" placeholder="Contoh: Jl. Selorejo No. 88, depan ruko merah" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Pilih Metode Pembayaran:</label>
+                <select id="metode" required>
+                    <option value="">-- Pilih Pembayaran --</option>
+                    <option value="DANA">Aplikasi DANA</option>
+                    <option value="SeaBank">SeaBank</option>
+                    <option value="OVO">OVO</option>
+                    <option value="E-Wallet">E-Wallet Lainnya</option>
+                    <option value="Bank BRI">Bank BRI</option>
+                    <option value="Bank BCA">Bank BCA</option>
+                    <option value="Bank Mandiri">Bank Mandiri</option>
+                    <option value="Bank BNI">Bank BNI</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="background: #fff9c4; padding: 15px; border-radius: 8px; border: 1px solid #fbc02d;">
+                <label>📤 Upload Bukti Pembayaran (Screenshot):</label>
+                <input type="file" id="buktiBayar" accept="image/*">
+                <p style="font-size: 0.8em; color: #555; margin-top: 5px;">*Wajib diunggah jika memilih pembayaran via Transfer/E-wallet.</p>
+            </div>
+<div id="instruksiTransfer" style="background: #2c2c2c; color: #FFD700; padding: 15px; border-radius: 10px; border: 1px solid #FFD700; margin-bottom: 20px;">
+    <h4 style="margin-top:0; border-bottom: 1px solid #FFD700; padding-bottom: 5px;">🏦 SALIN NOMOR REKENING:</h4>
+    <div style="list-style: none; padding: 0; margin: 0; font-family: sans-serif;">
+        
+        <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 10px; border-radius: 8px;">
+            <div>
+                <small style="color: #bbb;">BCA A/N NAMA PEMILIK</small><br>
+                <strong id="rekBCA" style="font-size: 1.2em; letter-spacing: 1px;">1234567890</strong>
+            </div>
+            <button type="button" onclick="salinTeks('rekBCA')" style="background: #FFD700; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #000;">SALIN</button>
+        </div>
+
+        <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 10px; border-radius: 8px;">
+            <div>
+                <small style="color: #bbb;">DANA A/N KEDAI 88</small><br>
+                <strong id="rekDANA" style="font-size: 1.2em; letter-spacing: 1px;">081234567890</strong>
+            </div>
+            <button type="button" onclick="salinTeks('rekDANA')" style="background: #FFD700; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #000;">SALIN</button>
+        </div>
+ <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 10px; border-radius: 8px;">
+            <div>
+                <small style="color: #bbb;">SEABANK A/N KEDAI 88</small><br>
+                <strong id="rekSEABANK" style="font-size: 1.2em; letter-spacing: 1px;">081234567890</strong>
+            </div>
+            <button type="button" onclick="salinTeks('rekSEABANK')" style="background: #FFD700; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; color: #000;">SALIN</button>
+        </div>
+    </div>
+    <p style="font-size: 0.8em; color: #fff; margin-top: 10px; text-align: center;">
+        <i>*Klik tombol kuning untuk menyalin nomor rekening</i>
+    </p>
+</div>
+
+            <button type="button" class="btn-wa" onclick="kirimPesan()">🛒 BUAT PESANAN (KIRIM KE WHATSAPP)</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const inputs = document.querySelectorAll('.qty-input');
+    const totalDisplay = document.getElementById('displayTotal');
+
+    // Update total harga setiap kali ada perubahan jumlah
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            let total = 0;
+            inputs.forEach(i => {
+                const qty = parseInt(i.value) || 0;
+                const price = parseInt(i.getAttribute('data-price'));
+                total += qty * price;
+            });
+            totalDisplay.innerText = total.toLocaleString('id-ID');
+        });
+    });
+
+    function kirimPesan() {
+    const nama = document.getElementById('nama').value;
+    const alamat = document.getElementById('alamat').value;
+    const metode = document.getElementById('metode').value;
+    const total = document.getElementById('displayTotal').innerText;
+    
+    if(!nama || !alamat || total === "0" || !metode) {
+        alert("Mohon lengkapi data pemesan dan pilih menu!");
+        return;
+    }
+
+    // Isi data ke Invoice
+    document.getElementById('invNama').innerText = nama;
+    document.getElementById('invAlamat').innerText = alamat;
+    document.getElementById('invMetode').innerText = metode;
+    document.getElementById('invTotal').innerText = total;
+    document.getElementById('invTanggal').innerText = new Date().toLocaleString('id-ID');
+
+    let listHtml = "";
+    document.querySelectorAll('.qty-input').forEach(i => {
+        if(i.value > 0) {
+            listHtml += `<div style="display:flex; justify-content:space-between;">
+                            <span>${i.getAttribute('data-name')} (x${i.value})</span>
+                            <span>Rp ${(i.value * i.getAttribute('data-price')).toLocaleString('id-ID')}</span>
+                         </div>`;
+        }
+    });
+    document.getElementById('invListPesanan').innerHTML = listHtml;
+
+    // Tampilkan Modal
+    document.getElementById('invoiceModal').style.display = "block";
+}
+
+function tutupInvoice() {
+    document.getElementById('invoiceModal').style.display = "none";
+}
+
+function finalKirimWA() {
+    const nama = document.getElementById('invNama').innerText;
+    const alamat = document.getElementById('invAlamat').innerText;
+    const metode = document.getElementById('invMetode').innerText;
+    const total = document.getElementById('invTotal').innerText;
+    
+    let detail = "";
+    document.querySelectorAll('.qty-input').forEach(i => {
+        if(i.value > 0) {
+            detail += `- ${i.getAttribute('data-name')} (x${i.value})\n`;
+        }
+    });
+
+    const noWA = "6285731725583"; // GANTI NOMOR ANDA
+    const text = `*PESANAN FIX - KEDAI 88*\n` +
+                 `--------------------------\n` +
+                 `👤 Nama: ${nama}\n` +
+                 `📍 Alamat: ${alamat}\n` +
+                 `💳 Bayar: ${metode}\n\n` +
+                 `🛒 *Pesanan:*\n${detail}\n` +
+                 `💰 *TOTAL:* Rp ${total}\n` +
+                 `--------------------------\n` +
+                 `_Mohon diproses, bukti transfer segera dikirim!_`;
+
+    window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`, '_blank');
+    tutupInvoice();
+}
+function salinTeks(idElement) {
+    // Ambil teks dari ID yang ditentukan
+    const teks = document.getElementById(idElement).innerText;
+    
+    // Gunakan navigator clipboard API
+    navigator.clipboard.writeText(teks).then(() => {
+        // Beri tahu pelanggan bahwa teks berhasil disalin
+        alert("Nomor rekening " + teks + " berhasil disalin!");
+    }).catch(err => {
+        console.error('Gagal menyalin: ', err);
+    });
+}
+
+</script>
+<div id="invoiceModal">
+    <div class="invoice-content">
+        <div class="invoice-header">
+            <h3>INVOICE KEDAI 88</h3>
+            <p id="invTanggal"></p>
+        </div>
+        <div class="invoice-body">
+            <p><strong>Nama:</strong> <span id="invNama"></span></p>
+            <p><strong>Alamat:</strong> <span id="invAlamat"></span></p>
+            <hr>
+            <div id="invListPesanan"></div>
+            <hr>
+            <p><strong>Metode:</strong> <span id="invMetode"></span></p>
+            <h3 style="text-align: right;">TOTAL: Rp <span id="invTotal"></span></h3>
+        </div>
+        <div class="invoice-footer">
+            <p>Terima kasih sudah memesan!</p>
+            <button class="btn-confirm" onclick="finalKirimWA()">KONFIRMASI & KIRIM WA</button>
+            <button onclick="tutupInvoice()" style="background:none; border:none; color:red; cursor:pointer; margin-top:10px;">Batal</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
